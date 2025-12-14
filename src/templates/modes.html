@@ -80,14 +80,86 @@
   <a-entity id="mode2d" bind__visible="!hasVR">
     {{ mode(0, 'ride', 'ride', '#modeRideImg', 'Relax and enjoy the ride.', false) }}
     {{ mode(1, 'viewer', 'classic', '#modeViewerImg', 'View the beat map.\n\nConnect a VR headset\nwith controllers\nto experience\nmore modes!', false) }}
-    {{ mode(2, 'online', 'online', '#modeViewerImg', 'Play with friends!\n\nHost creates room,\nshares code,\neveryone plays together!', false) }}
+    
+    <!-- Online Mode for 2D/PC -->
+    <a-entity
+      id="modeOnline2d"
+      class="modeItem"
+      data-mode="online"
+      data-name="Online2d"
+      position="0 -0.75 0"
+      mixin="modeAnimations">
+      <a-entity
+        class="modeBackground"
+        bind-toggle__raycastable="menuActive && !hasVR"
+        position="0 0 -0.01"
+        geometry="primitive: plane; width: 3; height: 0.8"
+        material="shader: panelShader; brightness: 0.1; ratio: 4; borderWidth: 0.002"
+        mixin="modeBackgroundHover modeBackgroundSelect"
+        proxy-event="event: click; to: a-scene; as: onlinemenutoggle"></a-entity>
+      <a-entity
+        class="modeTitle"
+        mixin="font"
+        text="align: left; value: ONLINE\nMODE; lineHeight: 45; width: 2.6"
+        render-order="menutext"
+        position="0.14 0.05 0"></a-entity>
+      <a-entity
+        class="modeThumb"
+        mixin="modeThumbAnimations"
+        geometry="primitive: plane; width: 0.7; height: 0.5"
+        material="src: #modeViewerImg; shader: flat; color: #0FF"
+        position="-0.20 0 0"></a-entity>
+      <a-entity
+        class="modeInstructions"
+        mixin="font"
+        render-order="menutext"
+        bind__text="color: colorPrimary"
+        text="value: Play with friends!\n\nCreate or join a room.\n\nHost picks the song,\neveryone plays together!; width: 1.6; lineHeight: 47"
+        position="1.1 -0.05 0"></a-entity>
+    </a-entity>
   </a-entity>
 
   <a-entity id="modeVR" bind__visible="hasVR">
     {{ mode(0, 'punch', 'punch', '#modePunchImg', 'Punch the beats, mind\ncolor.\n\nAvoid all things yellow.\n\nPunch harder\n for better score.', true) }}
     {{ mode(1, 'ride', 'ride', '#modeRideImg', 'Relax and enjoy the ride.\n\nTake a quick breather.\n\nNo score!', true) }}
     {{ mode(2, 'classic', 'classic', '#modeClassicImg', 'Cut the beats, mind\ncolor and direction.\n\nAvoid all things yellow.\n\nSwing fast and accurate\nfor better score.', true) }}
-    {{ mode(3, 'online', 'online', '#modeClassicImg', 'Play with friends!\n\nHost creates room,\nshares code,\neveryone plays together!', true) }}
+    
+    <!-- Online Mode -->
+    <a-entity
+      id="modeOnlinevr"
+      class="modeItem"
+      data-mode="online"
+      data-name="Onlinevr"
+      position="0 -1.5 0"
+      mixin="modeAnimations">
+      <a-entity
+        class="modeBackground"
+        bind-toggle__raycastable="menuActive && hasVR"
+        position="0 0 -0.01"
+        geometry="primitive: plane; width: 3; height: 0.8"
+        material="shader: panelShader; brightness: 0.1; ratio: 4; borderWidth: 0.002"
+        mixin="modeBackgroundHover modeBackgroundSelect"
+        proxy-event="event: click; to: a-scene; as: onlinemenutoggle"></a-entity>
+      <a-entity
+        class="modeTitle"
+        mixin="font"
+        text="align: left; value: ONLINE\nMODE; lineHeight: 45; width: 2.6"
+        render-order="menutext"
+        position="0.14 0.05 0"></a-entity>
+      <a-entity
+        class="modeThumb"
+        mixin="modeThumbAnimations"
+        geometry="primitive: plane; width: 0.7; height: 0.5"
+        material="src: #modeClassicImg; shader: flat; color: #0FF"
+        position="-0.20 0 0"></a-entity>
+      <a-entity
+        class="modeInstructions"
+        mixin="font"
+        render-order="menutext"
+        bind__text="color: colorPrimary"
+        text="value: Play with friends!\n\nCreate or join a room.\n\nHost picks the song,\neveryone plays together!; width: 1.6; lineHeight: 47"
+        position="1.1 -0.05 0"></a-entity>
+    </a-entity>
   </a-entity>
 
   <a-entity

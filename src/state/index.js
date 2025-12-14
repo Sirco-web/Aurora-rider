@@ -620,27 +620,7 @@ AFRAME.registerState({
     },
 
     onlinesetusername: (state, payload) => {
-      var value = '';
-      if (typeof payload === 'string') {
-        value = payload;
-      } else if (payload && payload.value !== undefined) {
-        value = payload.value;
-      } else if (payload && payload.detail && payload.detail.value !== undefined) {
-        value = payload.detail.value;
-      }
-      state.onlineUsername = value.toUpperCase();
-    },
-
-    onlinesetjoincode: (state, payload) => {
-      var value = '';
-      if (typeof payload === 'string') {
-        value = payload;
-      } else if (payload && payload.value !== undefined) {
-        value = payload.value;
-      } else if (payload && payload.detail && payload.detail.value !== undefined) {
-        value = payload.detail.value;
-      }
-      state.onlineJoinCode = value.toUpperCase();
+      state.onlineUsername = typeof payload === 'string' ? payload : (payload.value || '');
     },
 
     // ==========================================
@@ -1075,6 +1055,294 @@ AFRAME.registerState({
     wallhitstart: state => {
       takeDamage(state);
     },
+
+    // ==================== ONLINE MULTIPLAYER HANDLERS ====================
+    
+    onlinemenutoggle: state => {
+      if (!state.onlineMenuActive) {
+        // Opening online menu
+        state.onlineMenuActive = true;
+        state.onlineShowMainPanel = true;
+        state.onlineCreatePanelActive = false;
+        state.onlineJoinPanelActive = false;
+        state.onlineJoinCodePanelActive = false;
+        state.onlineError = '';
+        state.onlineHasError = false;
+      } else {
+        // Closing online menu
+        state.onlineMenuActive = false;
+        state.onlineCreatePanelActive = false;
+        state.onlineJoinPanelActive = false;
+        state.onlineJoinCodePanelActive = false;
+        state.onlineError = '';
+        state.onlineHasError = false;
+        state.onlineShowMainPanel = true;
+      }
+    },
+
+    onlinecreatepanel: state => {
+      state.onlineCreatePanelActive = true;
+      state.onlineJoinPanelActive = false;
+      state.onlineShowMainPanel = false;
+      state.onlineError = '';
+    },
+
+    onlinejoinpanel: state => {
+      state.onlineJoinPanelActive = true;
+      state.onlineCreatePanelActive = false;
+      state.onlineShowMainPanel = false;
+      state.onlineError = '';
+    },
+
+    onlineusernamesubmit: state => {
+      // Username is set by the component, now proceed
+      if (!state.onlineUsername || state.onlineUsername.trim() === '') {
+        state.onlineError = 'Please enter a username';
+        return;
+      }
+      
+      if (state.onlineCreatePanelActive) {
+        // Will create room - handled by component
+        state.onlineCreatePanelActive = false;
+      } else if (state.onlineJoinPanelActive) {
+        // Show join code panel
+        state.onlineJoinPanelActive = false;
+        state.onlineJoinCodePanelActive = true;
+      }
+    },
+
+    onlinejoincodesubmit: state => {
+      // Join code submit - handled by component
+      if (!state.onlineJoinCode || state.onlineJoinCode.trim().length < 6) {
+        state.onlineError = 'Please enter a valid 6-character room code';
+        return;
+      }
+      state.onlineJoinCodePanelActive = false;
+    },
+
+    onlinesetusername: (state, payload) => {
+      state.onlineUsername = payload;
+    },
+
+    onlinesetjoincode: (state, payload) => {
+      state.onlineJoinCode = payload;
+    },
+
+    onlineroomcreated: (state, payload) => {
+      state.onlineRoomCode = payload.code;
+      state.onlineRoomState = 'lobby';
+      state.onlineIsHost = true;
+      state.onlinePlayers = payload.players || [];
+      updateOnlinePlayersText(state);
+    },
+
+    onlineroomjoined: (state, payload) => {
+      state.onlineRoomCode = payload.code;
+      state.onlineRoomState = 'lobby';
+      state.onlineIsHost = payload.isHost || false;
+      state.onlinePlayers = payload.players || [];
+      updateOnlinePlayersText(state);
+      state.onlineError = '';
+    },
+
+    onlineplayersupdate: (state, payload) => {
+      state.onlinePlayers = payload.players || [];
+      updateOnlinePlayersText(state);
+    },
+
+    onlinestartsong: state => {
+      // Host clicked to pick a song - close online menu, open song picker
+      state.onlineMenuActive = false;
+      state.menuActive = true;
+      state.mainMenuActive = true;
+    },
+
+    onlinegamestart: (state, payload) => {
+      // Server tells everyone to start the game
+      state.onlineRoomState = 'playing';
+      state.onlineMenuActive = false;
+    },
+
+    onlinegameend: (state, payload) => {
+      // Game ended, show results
+      state.onlineRoomState = 'results';
+      state.onlineLeaderboard = payload.leaderboard || [];
+      
+      // Format leaderboard text
+      if (state.onlineLeaderboard.length > 0) {
+        state.onlineLeaderboardText = state.onlineLeaderboard
+          .sort((a, b) => b.score - a.score)
+          .map((player, index) => {
+            const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : (index + 1) + '.';
+            return medal + ' ' + player.name + ': ' + player.score + ' pts (' + player.accuracy + '%)';
+          })
+          .join('\n');
+      } else {
+        state.onlineLeaderboardText = 'No scores recorded';
+      }
+    },
+
+    onlinereturnlobby: state => {
+      state.onlineRoomState = 'lobby';
+      state.onlineLeaderboard = [];
+      state.onlineLeaderboardText = '';
+    },
+
+    onlineleaveroom: state => {
+      // Reset all online state
+      state.onlineMenuActive = false;
+      state.onlineCreatePanelActive = false;
+      state.onlineJoinPanelActive = false;
+      state.onlineJoinCodePanelActive = false;
+      state.onlineRoomCode = '';
+      state.onlineRoomState = '';
+      state.onlineIsHost = false;
+      state.onlinePlayers = [];
+      state.onlinePlayersText = '';
+      state.onlineJoinCode = '';
+      state.onlineLeaderboard = [];
+      state.onlineLeaderboardText = '';
+      state.onlineError = '';
+    },
+
+    onlinemenuback: state => {
+      // Handle back button in online menu
+      if (state.onlineRoomState === 'lobby' || state.onlineRoomState === 'results') {
+        // In a room - leave it
+        state.onlineRoomCode = '';
+        state.onlineRoomState = '';
+        state.onlineIsHost = false;
+        state.onlinePlayers = [];
+        state.onlinePlayersText = '';
+        state.onlineNotInRoom = true;
+        state.onlineInLobby = false;
+        state.onlineInResults = false;
+        state.onlineShowMainPanel = true;
+      } else if (state.onlineJoinCodePanelActive) {
+        state.onlineJoinCodePanelActive = false;
+        state.onlineJoinPanelActive = true;
+      } else if (state.onlineCreatePanelActive || state.onlineJoinPanelActive) {
+        state.onlineCreatePanelActive = false;
+        state.onlineJoinPanelActive = false;
+        state.onlineShowMainPanel = true;
+      } else {
+        state.onlineMenuActive = false;
+      }
+      state.onlineError = '';
+      state.onlineHasError = false;
+    },
+
+    onlineconnected: state => {
+      state.onlineConnected = true;
+      state.onlineError = '';
+    },
+
+    onlinedisconnected: state => {
+      state.onlineConnected = false;
+      state.onlineError = 'Disconnected from server';
+    },
+
+    // Join flow - after username, go to code entry
+    onlinejoinusernamesubmit: state => {
+      if (!state.onlineUsername || state.onlineUsername.trim() === '') {
+        state.onlineError = 'Please enter a username';
+        return;
+      }
+      state.onlineJoinPanelActive = false;
+      state.onlineJoinCodePanelActive = true;
+      state.onlineError = '';
+    },
+
+    // Host selecting song
+    onlinehostselectingsong: state => {
+      state.onlineMenuActive = false;
+      state.menuActive = true;
+    },
+
+    // Challenge selected by host (received by non-hosts)
+    onlinechallengeselected: (state, payload) => {
+      // Non-hosts receive this when host picks a song
+      // They'll see countdown next
+    },
+
+    // Game starting - show countdown
+    onlinegamestarting: (state, payload) => {
+      state.onlineRoomState = 'countdown';
+      state.onlineCountdown = payload.countdown || 5;
+      state.onlineMenuActive = true;
+      state.menuActive = false;
+      
+      // Store challenge info for non-hosts
+      if (payload.challenge && !state.onlineIsHost) {
+        Object.assign(state.menuSelectedChallenge, payload.challenge);
+      }
+    },
+
+    // Countdown tick
+    onlinecountdown: (state, payload) => {
+      state.onlineCountdown = payload.count;
+    },
+
+    // Game started - start playing
+    onlinegamestarted: state => {
+      state.onlineRoomState = 'playing';
+      state.onlineMenuActive = false;
+      state.menuActive = false;
+      
+      // Trigger the actual game start
+      if (state.menuSelectedChallenge.id) {
+        state.isLoading = true;
+        state.loadingText = 'Loading...';
+        Object.assign(state.challenge, state.menuSelectedChallenge);
+        state.menuSelectedChallenge.id = '';
+      }
+    },
+
+    // Score update from other player
+    onlinescoreupdate: (state, payload) => {
+      // Could update a live leaderboard display here
+    },
+
+    // Game results received
+    onlinegameresults: (state, payload) => {
+      state.onlineRoomState = 'results';
+      state.onlineMenuActive = true;
+      state.menuActive = false;
+      state.isVictory = false;
+      state.isGameOver = false;
+      state.onlineLeaderboard = payload.leaderboard || [];
+      
+      // Format leaderboard text
+      if (state.onlineLeaderboard.length > 0) {
+        state.onlineLeaderboardText = state.onlineLeaderboard
+          .sort(function(a, b) { return b.score - a.score; })
+          .map(function(player, index) {
+            var medal = index === 0 ? '1st' : index === 1 ? '2nd' : index === 2 ? '3rd' : (index + 1) + 'th';
+            var acc = typeof player.accuracy === 'number' ? player.accuracy.toFixed(1) : player.accuracy;
+            return medal + ' ' + player.name + ': ' + player.score + ' pts (' + acc + '%)';
+          })
+          .join('\n');
+      } else {
+        state.onlineLeaderboardText = 'No scores recorded';
+      }
+    },
+
+    // Returned to lobby
+    onlinereturnedtolobby: (state, payload) => {
+      state.onlineRoomState = 'lobby';
+      state.onlineLeaderboard = [];
+      state.onlineLeaderboardText = '';
+      state.onlinePlayers = payload.players || [];
+      updateOnlinePlayersText(state);
+    },
+
+    // Became host (previous host left)
+    onlinebecamehost: state => {
+      state.onlineIsHost = true;
+    },
+
+    // ==================== END ONLINE HANDLERS ====================
+
     ziploaderend: (state, payload) => {
       state.challenge.audio = payload.audio;
       state.hasSongLoadError = false;
