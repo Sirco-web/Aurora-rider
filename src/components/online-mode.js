@@ -39,20 +39,22 @@ AFRAME.registerComponent('online-mode', {
     });
     
     multiplayerClient.on('roomCreated', function (data) {
-      console.log('[Online] Room created:', data.roomCode);
+      console.log('[Online] Room created:', data.roomCode, 'mode:', data.room.gameMode);
       scene.emit('onlineroomcreated', {
         code: data.roomCode,
         players: data.room.players,
+        gameMode: data.room.gameMode || 'classic',
         isHost: true
       });
     });
     
     multiplayerClient.on('roomJoined', function (data) {
-      console.log('[Online] Joined room:', data.roomCode);
+      console.log('[Online] Joined room:', data.roomCode, 'mode:', data.room.gameMode);
       var isHost = data.room.hostId === multiplayerClient.socket.id;
       scene.emit('onlineroomjoined', {
         code: data.roomCode,
         players: data.room.players,
+        gameMode: data.room.gameMode || 'classic',
         isHost: isHost
       });
     });
@@ -135,7 +137,17 @@ AFRAME.registerComponent('online-mode', {
     var self = this;
     var scene = this.el.sceneEl;
     
-    // Create room - get username from keyboard and create
+    // Clear keyboards when going back in menu
+    scene.addEventListener('onlinemenuback', function () {
+      self.clearKeyboards();
+    });
+    
+    // Clear keyboards when menu closes
+    scene.addEventListener('onlinemenuclose', function () {
+      self.clearKeyboards();
+    });
+    
+    // Create room - get username from keyboard and create with selected game mode
     scene.addEventListener('onlinecreateroom', function () {
       var keyboard = document.getElementById('createUsernameKeyboard');
       var username = '';
@@ -148,7 +160,11 @@ AFRAME.registerComponent('online-mode', {
         return;
       }
       
-      self.createRoom(username.trim());
+      // Get selected game mode from state
+      var state = scene.systems.state.state;
+      var gameMode = state.onlineGameMode || 'classic';
+      
+      self.createRoom(username.trim(), gameMode);
     });
     
     // Show join code panel after username entry
@@ -230,14 +246,35 @@ AFRAME.registerComponent('online-mode', {
     scene.addEventListener('onlinereturnlobby', function () {
       multiplayerClient.returnToLobby();
     });
+    
+    // Kick player (host only)
+    scene.addEventListener('onlinekickplayer', function (evt) {
+      var state = scene.systems.state.state;
+      if (state.onlineIsHost && evt.detail && evt.detail.playerId) {
+        multiplayerClient.kickPlayer(evt.detail.playerId);
+      }
+    });
   },
 
-  createRoom: function (playerName) {
+  clearKeyboards: function () {
+    // Clear all online keyboards
+    var keyboards = ['createUsernameKeyboard', 'joinUsernameKeyboard', 'joinCodeKeyboard'];
+    keyboards.forEach(function (id) {
+      var keyboard = document.getElementById(id);
+      if (keyboard && keyboard.components['super-keyboard']) {
+        keyboard.setAttribute('super-keyboard', 'value', '');
+        keyboard.components['super-keyboard'].rawValue = '';
+        keyboard.components['super-keyboard'].close();
+      }
+    });
+  },
+
+  createRoom: function (playerName, gameMode) {
     var self = this;
     var scene = this.el.sceneEl;
     
     multiplayerClient.connect().then(function () {
-      multiplayerClient.createRoom(playerName, 'classic');
+      multiplayerClient.createRoom(playerName, gameMode || 'classic');
     }).catch(function (err) {
       console.error('[Online] Failed to connect:', err);
       scene.emit('onlineerror', 'Failed to connect to server');

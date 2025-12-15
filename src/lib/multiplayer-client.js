@@ -335,6 +335,16 @@ class MultiplayerClient {
   }
 
   /**
+   * Kick a player from the room (host only)
+   * @param {string} playerId - The socket ID of the player to kick
+   */
+  kickPlayer(playerId) {
+    if (this.socket && this.connected && this.roomCode && this.isHost) {
+      this.socket.emit('kickPlayer', { playerId });
+    }
+  }
+
+  /**
    * Send chat message
    * @param {string} message 
    */

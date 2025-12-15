@@ -73,6 +73,35 @@
     animation__midsectionhide="property: components.material.material.uniforms.midSection.value; from: 1: to: 0; dur: 160; startEvents: hidedifficultysection; easing: easeOutCubic"
     render-order="menu" position="0 0 -0.005"></a-entity>
 
+  <!-- Online Lobby Indicator -->
+  <a-entity id="onlineLobbyIndicator" bind__visible="onlineInLobby && menuActive"
+    position="1.45 0.75 0.01">
+    <a-entity
+      geometry="primitive: plane; width: 0.7; height: 0.5"
+      material="shader: flat; color: #1a1a2e; opacity: 0.95"
+      position="0 0 -0.001"></a-entity>
+    <a-entity mixin="font"
+      text="align: center; color: #FF6BE6; wrapCount: 15; value: ONLINE LOBBY; width: 0.6"
+      position="0 0.15 0"></a-entity>
+    <a-entity mixin="font"
+      bind__text="value: onlineRoomCodeDisplay"
+      text="align: center; color: #0FF; wrapCount: 15; width: 0.6"
+      position="0 0.02 0"></a-entity>
+    <a-entity mixin="font"
+      bind__text="value: onlinePlayersText"
+      text="align: center; color: #FFF; wrapCount: 20; width: 0.5"
+      position="0 -0.1 0"></a-entity>
+    <a-entity
+      mixin="bigMenuButton"
+      bind-toggle__raycastable="onlineInLobby && menuActive"
+      geometry="height: 0.12; width: 0.5"
+      position="0 -0.22 0.01"
+      proxy-event="event: click; to: a-scene; as: onlineleaveroom"
+      play-sound="event: mouseenter; sound: #hoverSound; volume: 0.03">
+      <a-entity mixin="font" text="align: center; color: #F44; wrapCount: 15; value: LEAVE" position="0 -0.035 0.01"></a-entity>
+    </a-entity>
+  </a-entity>
+
   <a-entity id="mainMenu" bind__visible="mainMenuActive && !isMenuOpening || isSearching">
     <a-entity id="searchResultsContainer" position="0 0 0.001" class="menuAnimation"
       bind__menu-slide-animation="isSearching: isSearching; menuSelectedChallengeId: menuSelectedChallenge.id"

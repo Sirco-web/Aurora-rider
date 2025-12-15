@@ -187,10 +187,14 @@ AFRAME.registerState({
     // Online Multiplayer State
     onlineMenuActive: false,
     onlineCreatePanelActive: false,
+    onlineModeSelectPanelActive: false,
     onlineJoinPanelActive: false,
     onlineRoomCode: '',
+    onlineRoomCodeDisplay: '',  // 'Room: XXXXXX'
     onlineRoomState: '',  // 'lobby', 'selecting', 'countdown', 'playing', 'results'
     onlineGameMode: '',   // 'classic' or 'punch'
+    onlineGameModeDisplay: '',  // 'CLASSIC MODE' or 'PUNCH MODE'
+    onlineCreateModeDisplay: '',  // 'MODE: CLASSIC' or 'MODE: PUNCH'
     onlineIsHost: false,
     onlineIsReady: false,
     onlinePlayers: [],
@@ -221,7 +225,7 @@ AFRAME.registerState({
     state.onlineInCountdown = roomState === 'countdown';
     state.onlineInPlaying = roomState === 'playing';
     state.onlineInResults = roomState === 'results';
-    state.onlineShowMainPanel = roomState === '' && !state.onlineCreatePanelActive && !state.onlineJoinPanelActive;
+    state.onlineShowMainPanel = roomState === '' && !state.onlineCreatePanelActive && !state.onlineJoinPanelActive && !state.onlineModeSelectPanelActive;
   },
 
   handlers: {
@@ -469,12 +473,14 @@ AFRAME.registerState({
     },
 
     onlineshowcreate: state => {
-      state.onlineCreatePanelActive = true;
+      state.onlineModeSelectPanelActive = true;
+      state.onlineCreatePanelActive = false;
       state.onlineJoinPanelActive = false;
     },
 
     onlinehidecreate: state => {
       state.onlineCreatePanelActive = false;
+      state.onlineModeSelectPanelActive = false;
     },
 
     onlineshowjoin: state => {
@@ -489,12 +495,16 @@ AFRAME.registerState({
 
     onlinecreateclassic: state => {
       state.onlineGameMode = 'classic';
-      // Trigger room creation via component
+      state.onlineModeSelectPanelActive = false;
+      state.onlineCreatePanelActive = true;
+      updateOnlineDisplayTexts(state);
     },
 
     onlinecreatepunch: state => {
       state.onlineGameMode = 'punch';
-      // Trigger room creation via component
+      state.onlineModeSelectPanelActive = false;
+      state.onlineCreatePanelActive = true;
+      updateOnlineDisplayTexts(state);
     },
 
     onlinejoinconfirm: state => {
@@ -508,20 +518,22 @@ AFRAME.registerState({
     onlineroomcreated: (state, payload) => {
       state.onlineRoomCode = payload.code || payload.roomCode;
       state.onlineRoomState = 'lobby';
-      state.onlineGameMode = 'classic';
+      state.onlineGameMode = payload.gameMode || state.onlineGameMode || 'classic';
       state.onlineIsHost = true;
       state.onlineCreatePanelActive = false;
+      state.onlineModeSelectPanelActive = false;
       state.onlinePlayers = payload.players || [];
       state.onlineNotInRoom = false;
       state.onlineInLobby = true;
       state.onlineShowMainPanel = false;
       updateOnlinePlayersText(state);
+      updateOnlineDisplayTexts(state);
     },
 
     onlineroomjoined: (state, payload) => {
       state.onlineRoomCode = payload.code || payload.roomCode;
       state.onlineRoomState = 'lobby';
-      state.onlineGameMode = 'classic';
+      state.onlineGameMode = payload.gameMode || 'classic';
       state.onlineIsHost = payload.isHost || false;
       state.onlineJoinPanelActive = false;
       state.onlineJoinCodePanelActive = false;
@@ -530,6 +542,7 @@ AFRAME.registerState({
       state.onlineInLobby = true;
       state.onlineShowMainPanel = false;
       updateOnlinePlayersText(state);
+      updateOnlineDisplayTexts(state);
     },
 
     onlineplayersupdate: (state, payload) => {
@@ -578,6 +591,7 @@ AFRAME.registerState({
       state.onlinePlayers = [];
       state.onlinePlayersText = '';
       state.onlineCountdown = 0;
+      updateOnlineDisplayTexts(state);
     },
 
     onlinegamestarting: (state, payload) => {
@@ -1087,7 +1101,9 @@ AFRAME.registerState({
     },
 
     onlinecreatepanel: state => {
-      state.onlineCreatePanelActive = true;
+      // Show mode selection panel first (not username entry)
+      state.onlineModeSelectPanelActive = true;
+      state.onlineCreatePanelActive = false;
       state.onlineJoinPanelActive = false;
       state.onlineShowMainPanel = false;
       state.onlineError = '';
@@ -1135,19 +1151,33 @@ AFRAME.registerState({
     },
 
     onlineroomcreated: (state, payload) => {
-      state.onlineRoomCode = payload.code;
+      state.onlineRoomCode = payload.code || payload.roomCode;
       state.onlineRoomState = 'lobby';
+      state.onlineGameMode = payload.gameMode || state.onlineGameMode || 'classic';
       state.onlineIsHost = true;
+      state.onlineCreatePanelActive = false;
+      state.onlineModeSelectPanelActive = false;
       state.onlinePlayers = payload.players || [];
+      state.onlineNotInRoom = false;
+      state.onlineInLobby = true;
+      state.onlineShowMainPanel = false;
       updateOnlinePlayersText(state);
+      updateOnlineDisplayTexts(state);
     },
 
     onlineroomjoined: (state, payload) => {
-      state.onlineRoomCode = payload.code;
+      state.onlineRoomCode = payload.code || payload.roomCode;
       state.onlineRoomState = 'lobby';
+      state.onlineGameMode = payload.gameMode || 'classic';
       state.onlineIsHost = payload.isHost || false;
+      state.onlineJoinPanelActive = false;
+      state.onlineJoinCodePanelActive = false;
       state.onlinePlayers = payload.players || [];
+      state.onlineNotInRoom = false;
+      state.onlineInLobby = true;
+      state.onlineShowMainPanel = false;
       updateOnlinePlayersText(state);
+      updateOnlineDisplayTexts(state);
       state.onlineError = '';
     },
 
@@ -1227,8 +1257,13 @@ AFRAME.registerState({
       } else if (state.onlineJoinCodePanelActive) {
         state.onlineJoinCodePanelActive = false;
         state.onlineJoinPanelActive = true;
-      } else if (state.onlineCreatePanelActive || state.onlineJoinPanelActive) {
+      } else if (state.onlineCreatePanelActive) {
+        // Go back from username entry to mode selection
         state.onlineCreatePanelActive = false;
+        state.onlineModeSelectPanelActive = true;
+      } else if (state.onlineModeSelectPanelActive || state.onlineJoinPanelActive) {
+        // Go back from mode selection or join panel to main menu
+        state.onlineModeSelectPanelActive = false;
         state.onlineJoinPanelActive = false;
         state.onlineShowMainPanel = true;
       } else {
@@ -1514,6 +1549,22 @@ function updateOnlinePlayersText(state) {
   }).join('\n');
 }
 
+function updateOnlineDisplayTexts(state) {
+  // Update room code display
+  state.onlineRoomCodeDisplay = state.onlineRoomCode ? 'Room: ' + state.onlineRoomCode : '';
+  
+  // Update game mode display texts
+  if (state.onlineGameMode === 'punch') {
+    state.onlineGameModeDisplay = 'PUNCH MODE';
+    state.onlineCreateModeDisplay = 'MODE: PUNCH';
+  } else if (state.onlineGameMode === 'classic') {
+    state.onlineGameModeDisplay = 'CLASSIC MODE';
+    state.onlineCreateModeDisplay = 'MODE: CLASSIC';
+  } else {
+    state.onlineGameModeDisplay = '';
+    state.onlineCreateModeDisplay = '';
+  }
+}
 function clearLeaderboard(state) {
   state.leaderboard.length = 0;
   state.leaderboard.__dirty = true;

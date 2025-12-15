@@ -50,13 +50,44 @@
     </a-entity>
   </a-entity>
 
-  <!-- Username Entry (Create flow) -->
+  <!-- Game Mode Selection (Create flow - Step 1) -->
+  <a-entity bind__visible="onlineModeSelectPanelActive">
+    <a-entity mixin="font" text="align: center; color: #FFF; wrapCount: 25; value: SELECT GAME MODE; width: 1.5" position="0 0.25 0.01"></a-entity>
+    
+    <!-- Classic Mode Button -->
+    <a-entity
+      mixin="bigMenuButton"
+      bind-toggle__raycastable="onlineModeSelectPanelActive"
+      geometry="primitive: plane; width: 0.6; height: 0.35"
+      position="-0.35 -0.05 0.01"
+      proxy-event="event: click; to: a-scene; as: onlinecreateclassic"
+      play-sound="event: mouseenter; sound: #hoverSound; volume: 0.03">
+      <a-entity mixin="font" text="align: center; color: #0FF; wrapCount: 12; value: CLASSIC; width: 0.5" position="0 0.02 0.01"></a-entity>
+      <a-entity mixin="font" text="align: center; color: #888; wrapCount: 20; value: Sabers; width: 0.4" position="0 -0.08 0.01"></a-entity>
+    </a-entity>
+
+    <!-- Punch Mode Button -->
+    <a-entity
+      mixin="bigMenuButton"
+      bind-toggle__raycastable="onlineModeSelectPanelActive"
+      geometry="primitive: plane; width: 0.6; height: 0.35"
+      position="0.35 -0.05 0.01"
+      proxy-event="event: click; to: a-scene; as: onlinecreatepunch"
+      play-sound="event: mouseenter; sound: #hoverSound; volume: 0.03">
+      <a-entity mixin="font" text="align: center; color: #FF6BE6; wrapCount: 12; value: PUNCH; width: 0.5" position="0 0.02 0.01"></a-entity>
+      <a-entity mixin="font" text="align: center; color: #888; wrapCount: 20; value: Fists; width: 0.4" position="0 -0.08 0.01"></a-entity>
+    </a-entity>
+  </a-entity>
+
+  <!-- Username Entry (Create flow - Step 2) -->
   <a-entity bind__visible="onlineCreatePanelActive">
+    <a-entity mixin="font" bind__text="value: onlineCreateModeDisplay" text="align: center; wrapCount: 20; width: 1; color: #FF6BE6" position="0 0.35 0.01"></a-entity>
     <a-entity
       id="createUsernameKeyboard"
       keyboard-raycastable="condition: onlineCreatePanelActive"
       bind__super-keyboard="hand: inVR && (activeHand === 'left' && '#leftHand' || '#rightHand') || '#mouseCursor'; show: onlineCreatePanelActive"
       super-keyboard="imagePath: assets/img/keyboard; font: assets/fonts/Viga-Regular.json; align: center; model: superkeyboard; keyColor: #fff; keyBgColor: #333; inputColor: #fff; labelColor: #FF6BE6; filters: allupper; maxLength: 10; width: 1.2; label: ENTER YOUR NAME; hand: #mouseCursor; injectToRaycasterObjects: false"
+      proxy-event__accept="event: superkeyboardinput; to: a-scene; as: onlinecreateroom"
       position="0 0.05 0.02"></a-entity>
     <a-entity
       mixin="bigMenuButton"
@@ -75,6 +106,7 @@
       keyboard-raycastable="condition: onlineJoinPanelActive"
       bind__super-keyboard="hand: inVR && (activeHand === 'left' && '#leftHand' || '#rightHand') || '#mouseCursor'; show: onlineJoinPanelActive"
       super-keyboard="imagePath: assets/img/keyboard; font: assets/fonts/Viga-Regular.json; align: center; model: superkeyboard; keyColor: #fff; keyBgColor: #333; inputColor: #fff; labelColor: #FF6BE6; filters: allupper; maxLength: 10; width: 1.2; label: ENTER YOUR NAME; hand: #mouseCursor; injectToRaycasterObjects: false"
+      proxy-event__accept="event: superkeyboardinput; to: a-scene; as: onlineshowjoincode"
       position="0 0.05 0.02"></a-entity>
     <a-entity
       mixin="bigMenuButton"
@@ -93,6 +125,7 @@
       keyboard-raycastable="condition: onlineJoinCodePanelActive"
       bind__super-keyboard="hand: inVR && (activeHand === 'left' && '#leftHand' || '#rightHand') || '#mouseCursor'; show: onlineJoinCodePanelActive"
       super-keyboard="imagePath: assets/img/keyboard; font: assets/fonts/Viga-Regular.json; align: center; model: superkeyboard; keyColor: #fff; keyBgColor: #333; inputColor: #fff; labelColor: #FF6BE6; filters: allupper; maxLength: 6; width: 1.2; label: ENTER ROOM CODE; hand: #mouseCursor; injectToRaycasterObjects: false"
+      proxy-event__accept="event: superkeyboardinput; to: a-scene; as: onlinejoinroom"
       position="0 0.05 0.02"></a-entity>
     <a-entity
       mixin="bigMenuButton"
@@ -106,16 +139,17 @@
 
   <!-- Lobby (waiting in room) -->
   <a-entity bind__visible="onlineInLobby">
-    <a-entity mixin="font" bind__text="value: onlineRoomCode" text="align: center; wrapCount: 12; width: 2; color: #FF6BE6" position="0 0.35 0.01"></a-entity>
-    <a-entity mixin="font" text="align: center; color: #FFF; wrapCount: 25; value: PLAYERS:; width: 1.5" position="0 0.15 0.01"></a-entity>
-    <a-entity mixin="font" bind__text="value: onlinePlayersText" text="align: center; wrapCount: 30; width: 1.5; lineHeight: 50; color: #0FF" position="0 -0.05 0.01"></a-entity>
+    <a-entity mixin="font" bind__text="value: onlineRoomCode" text="align: center; wrapCount: 12; width: 2; color: #FF6BE6" position="0 0.42 0.01"></a-entity>
+    <a-entity mixin="font" bind__text="value: onlineGameModeDisplay" text="align: center; wrapCount: 20; width: 1; color: #0FF" position="0 0.28 0.01"></a-entity>
+    <a-entity mixin="font" text="align: center; color: #FFF; wrapCount: 25; value: PLAYERS:; width: 1.5" position="0 0.12 0.01"></a-entity>
+    <a-entity mixin="font" bind__text="value: onlinePlayersText" text="align: center; wrapCount: 30; width: 1.5; lineHeight: 50; color: #0FF" position="0 -0.08 0.01"></a-entity>
     
     <!-- Host: Pick Song Button -->
     <a-entity bind__visible="onlineIsHost">
       <a-entity
         mixin="bigMenuButton"
-        bind-toggle__raycastable="onlineIsHost"
-        position="0 -0.35 0.01"
+        bind-toggle__raycastable="onlineIsHost && onlineInLobby"
+        position="-0.35 -0.35 0.01"
         proxy-event="event: click; to: a-scene; as: onlineselectsong"
         play-sound="event: mouseenter; sound: #hoverSound; volume: 0.03">
         <a-entity mixin="font" text="align: center; color: #FFF; wrapCount: 15; value: PICK SONG" position="0 -0.05 0.01"></a-entity>
@@ -125,6 +159,16 @@
     <!-- Non-host: Waiting message -->
     <a-entity bind__visible="!onlineIsHost">
       <a-entity mixin="font" text="align: center; color: #888; wrapCount: 35; value: Waiting for host to pick a song...; width: 1.5" position="0 -0.35 0.01"></a-entity>
+    </a-entity>
+    
+    <!-- Leave Room Button (both host and non-host) -->
+    <a-entity
+      mixin="bigMenuButton"
+      bind-toggle__raycastable="onlineInLobby"
+      bind__position="onlineIsHost && '0.35 -0.35 0.01' || '0 -0.55 0.01'"
+      proxy-event="event: click; to: a-scene; as: onlineleaveroom"
+      play-sound="event: mouseenter; sound: #hoverSound; volume: 0.03">
+      <a-entity mixin="font" text="align: center; color: #F44; wrapCount: 15; value: LEAVE" position="0 -0.05 0.01"></a-entity>
     </a-entity>
   </a-entity>
 
