@@ -444,6 +444,12 @@ AFRAME.registerState({
 
     gamemode: (state, mode) => {
       state.gameMode = mode;
+      // Close online menu when selecting a different game mode
+      state.onlineMenuActive = false;
+      state.onlineCreatePanelActive = false;
+      state.onlineJoinPanelActive = false;
+      state.onlineJoinCodePanelActive = false;
+      state.onlineShowMainPanel = true;
     },
 
     // ==========================================

@@ -54,13 +54,14 @@
   <a-entity bind__visible="onlineCreatePanelActive">
     <a-entity
       id="createUsernameKeyboard"
+      keyboard-raycastable="condition: onlineCreatePanelActive"
       bind__super-keyboard="hand: activeHand === 'left' && '#leftHand' || '#rightHand'; show: onlineCreatePanelActive"
-      super-keyboard="imagePath: assets/img/keyboard; font: assets/fonts/Viga-Regular.json; align: center; model: superkeyboard; keyColor: #fff; keyBgColor: #333; inputColor: #fff; labelColor: #FF6BE6; filters: allupper; maxLength: 10; width: 1.2; label: ENTER YOUR NAME"
-      position="0 -0.1 0.02"></a-entity>
+      super-keyboard="imagePath: assets/img/keyboard; font: assets/fonts/Viga-Regular.json; align: center; model: superkeyboard; keyColor: #fff; keyBgColor: #333; inputColor: #fff; labelColor: #FF6BE6; filters: allupper; maxLength: 10; width: 1.2; label: ENTER YOUR NAME; hand: #mouseCursor; injectToRaycasterObjects: false"
+      position="0 0.05 0.02"></a-entity>
     <a-entity
       mixin="bigMenuButton"
       bind-toggle__raycastable="onlineCreatePanelActive"
-      position="0 -0.5 0.01"
+      position="0 -0.4 0.01"
       proxy-event="event: click; to: a-scene; as: onlinecreateroom"
       play-sound="event: mouseenter; sound: #hoverSound; volume: 0.03">
       <a-entity mixin="font" text="align: center; color: #FFF; wrapCount: 15; value: CREATE ROOM" position="0 -0.05 0.01"></a-entity>
@@ -71,13 +72,14 @@
   <a-entity bind__visible="onlineJoinPanelActive">
     <a-entity
       id="joinUsernameKeyboard"
+      keyboard-raycastable="condition: onlineJoinPanelActive"
       bind__super-keyboard="hand: activeHand === 'left' && '#leftHand' || '#rightHand'; show: onlineJoinPanelActive"
-      super-keyboard="imagePath: assets/img/keyboard; font: assets/fonts/Viga-Regular.json; align: center; model: superkeyboard; keyColor: #fff; keyBgColor: #333; inputColor: #fff; labelColor: #FF6BE6; filters: allupper; maxLength: 10; width: 1.2; label: ENTER YOUR NAME"
-      position="0 -0.1 0.02"></a-entity>
+      super-keyboard="imagePath: assets/img/keyboard; font: assets/fonts/Viga-Regular.json; align: center; model: superkeyboard; keyColor: #fff; keyBgColor: #333; inputColor: #fff; labelColor: #FF6BE6; filters: allupper; maxLength: 10; width: 1.2; label: ENTER YOUR NAME; hand: #mouseCursor; injectToRaycasterObjects: false"
+      position="0 0.05 0.02"></a-entity>
     <a-entity
       mixin="bigMenuButton"
       bind-toggle__raycastable="onlineJoinPanelActive"
-      position="0 -0.5 0.01"
+      position="0 -0.4 0.01"
       proxy-event="event: click; to: a-scene; as: onlineshowjoincode"
       play-sound="event: mouseenter; sound: #hoverSound; volume: 0.03">
       <a-entity mixin="font" text="align: center; color: #FFF; wrapCount: 15; value: NEXT" position="0 -0.05 0.01"></a-entity>
@@ -88,13 +90,14 @@
   <a-entity bind__visible="onlineJoinCodePanelActive">
     <a-entity
       id="joinCodeKeyboard"
+      keyboard-raycastable="condition: onlineJoinCodePanelActive"
       bind__super-keyboard="hand: activeHand === 'left' && '#leftHand' || '#rightHand'; show: onlineJoinCodePanelActive"
-      super-keyboard="imagePath: assets/img/keyboard; font: assets/fonts/Viga-Regular.json; align: center; model: superkeyboard; keyColor: #fff; keyBgColor: #333; inputColor: #fff; labelColor: #FF6BE6; filters: allupper; maxLength: 6; width: 1.2; label: ENTER ROOM CODE"
-      position="0 -0.1 0.02"></a-entity>
+      super-keyboard="imagePath: assets/img/keyboard; font: assets/fonts/Viga-Regular.json; align: center; model: superkeyboard; keyColor: #fff; keyBgColor: #333; inputColor: #fff; labelColor: #FF6BE6; filters: allupper; maxLength: 6; width: 1.2; label: ENTER ROOM CODE; hand: #mouseCursor; injectToRaycasterObjects: false"
+      position="0 0.05 0.02"></a-entity>
     <a-entity
       mixin="bigMenuButton"
       bind-toggle__raycastable="onlineJoinCodePanelActive"
-      position="0 -0.5 0.01"
+      position="0 -0.4 0.01"
       proxy-event="event: click; to: a-scene; as: onlinejoinroom"
       play-sound="event: mouseenter; sound: #hoverSound; volume: 0.03">
       <a-entity mixin="font" text="align: center; color: #FFF; wrapCount: 15; value: JOIN ROOM" position="0 -0.05 0.01"></a-entity>
@@ -138,8 +141,8 @@
   <a-entity
     mixin="bigMenuButton"
     bind-toggle__raycastable="onlineMenuActive"
-    bind__visible="!onlineInCountdown"
-    position="0 -0.65 0.01"
+    bind__visible="!onlineInCountdown && !onlineInLobby"
+    position="0 -0.7 0.01"
     proxy-event="event: click; to: a-scene; as: onlinemenuback"
     play-sound="event: mouseenter; sound: #hoverSound; volume: 0.03">
     <a-entity mixin="font" text="align: center; color: #FFF; wrapCount: 10; value: BACK" position="0 -0.05 0.01"></a-entity>
