@@ -208,6 +208,7 @@ AFRAME.registerState({
     onlineHasError: false,
     onlineUsername: '',
     onlineJoinCodePanelActive: false,
+    onlineSelectedChallenge: {},  // Challenge selected by host for online play
     // Computed booleans for UI binding
     onlineNotInRoom: true,
     onlineInLobby: false,
@@ -610,6 +611,15 @@ AFRAME.registerState({
       state.onlineRoomState = 'playing';
       state.onlineMenuActive = false;
       state.menuActive = false;
+      
+      // Actually start the game - copy challenge from menuSelectedChallenge (set by onlinegamestarting)
+      if (state.menuSelectedChallenge && state.menuSelectedChallenge.id) {
+        resetScore(state);
+        Object.assign(state.challenge, state.menuSelectedChallenge);
+        state.isLoading = true;
+        state.loadingText = 'Loading...';
+        state.menuSelectedChallenge.id = '';
+      }
     },
 
     onlinescoreupdate: (state, payload) => {
@@ -858,6 +868,13 @@ AFRAME.registerState({
     playbuttonclick: state => {
       if (state.menuSelectedChallenge.id === '') { return; }
       if (badSongs[state.menuSelectedChallenge.id]) { return; }
+
+      // If in online lobby as host, don't start single player - let component handle it
+      if (state.onlineInLobby && state.onlineIsHost) {
+        // Store the challenge for online mode to use
+        state.onlineSelectedChallenge = Object.assign({}, state.menuSelectedChallenge);
+        return;
+      }
 
       let source = 'frontpage';
       if (state.playlist) { source = 'playlist'; }

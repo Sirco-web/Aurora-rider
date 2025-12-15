@@ -213,12 +213,24 @@ AFRAME.registerComponent('online-mode', {
     // When host clicks play on a song in online mode
     scene.addEventListener('playbuttonclick', function () {
       var state = scene.systems.state.state;
-      if (state.onlineInLobby && state.onlineIsHost && state.menuSelectedChallenge.id) {
+      console.log('=== PLAY BUTTON CLICKED ===');
+      console.log('onlineInLobby:', state.onlineInLobby);
+      console.log('onlineIsHost:', state.onlineIsHost);
+      console.log('onlineSelectedChallenge:', state.onlineSelectedChallenge ? state.onlineSelectedChallenge.id : 'none');
+      console.log('multiplayerClient connected:', multiplayerClient.connected);
+      console.log('multiplayerClient roomCode:', multiplayerClient.roomCode);
+      console.log('multiplayerClient isHost:', multiplayerClient.isHost);
+      
+      if (state.onlineInLobby && state.onlineIsHost && state.onlineSelectedChallenge) {
+        console.log('[Online] Sending challenge to server:', state.onlineSelectedChallenge.id);
         // Send challenge to server and start game
-        multiplayerClient.selectChallenge(state.menuSelectedChallenge);
+        multiplayerClient.selectChallenge(state.onlineSelectedChallenge);
         setTimeout(function () {
+          console.log('[Online] Starting game');
           multiplayerClient.startGame();
-        }, 100);
+        }, 500);
+      } else {
+        console.log('[Online] Conditions not met for online play');
       }
     });
     

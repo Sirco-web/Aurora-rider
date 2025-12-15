@@ -373,14 +373,22 @@ io.on('connection', (socket) => {
    * @param {Object} data - { challenge: Object }
    */
   socket.on('selectChallenge', (data) => {
+    console.log('Song selected:', data.challenge ? data.challenge.id : 'no challenge');
     const player = players.get(socket.id);
-    if (!player || !player.roomCode) return;
+    if (!player || !player.roomCode) {
+      console.log('selectChallenge: No player or room code');
+      return;
+    }
     
     const room = rooms.get(player.roomCode);
-    if (!room || room.hostId !== socket.id) return;
+    if (!room || room.hostId !== socket.id) {
+      console.log('selectChallenge: No room or not host');
+      return;
+    }
     
     room.selectedChallenge = data.challenge;
     room.state = 'selecting';
+    console.log('Challenge set for room', player.roomCode, ':', data.challenge.id);
     
     // Reset ready status
     for (const [playerId] of room.players) {

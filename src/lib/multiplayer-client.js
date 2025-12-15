@@ -291,8 +291,12 @@ class MultiplayerClient {
    * @param {Object} challenge 
    */
   selectChallenge(challenge) {
+    console.log('[MultiplayerClient] selectChallenge called. socket:', !!this.socket, 'connected:', this.connected, 'roomCode:', this.roomCode, 'isHost:', this.isHost);
     if (this.socket && this.connected && this.roomCode && this.isHost) {
+      console.log('[MultiplayerClient] Emitting selectChallenge:', challenge.id);
       this.socket.emit(MULTIPLAYER_EVENTS.SELECT_CHALLENGE, { challenge });
+    } else {
+      console.warn('[MultiplayerClient] Cannot select challenge - not connected or not host');
     }
   }
 
