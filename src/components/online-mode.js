@@ -280,33 +280,3 @@ AFRAME.registerComponent('online-joincode-input', {
     });
   }
 });
-
-/**
- * Score sync - sends periodic score updates during online play
- */
-AFRAME.registerComponent('online-score-sync', {
-  schema: {
-    interval: { type: 'number', default: 2000 }
-  },
-
-  init: function () {
-    this.lastUpdate = 0;
-  },
-
-  tick: function (time) {
-    var state = this.el.sceneEl.systems.state.state;
-    if (state.onlineRoomState !== 'playing') return;
-    if (!state.isPlaying) return;
-    
-    if (time - this.lastUpdate > this.data.interval) {
-      this.lastUpdate = time;
-      
-      multiplayerClient.updateScore({
-        score: state.score.score,
-        accuracy: parseFloat(state.score.accuracy) || 100,
-        combo: state.score.combo,
-        maxCombo: state.score.maxCombo
-      });
-    }
-  }
-});

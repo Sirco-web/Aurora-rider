@@ -14,9 +14,57 @@
     <meta property="twitter:image" content="https://supermedium.com/moonrider/assets/img/splash.jpg">
 
     <link rel="shortcut icon" href="assets/img/favicon.png" type="image/x-icon">
+    <style>
+      html, body {
+        background: #000 !important;
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      #vrButton {
+        position: absolute;
+        background: url(assets/img/enter-vr-button-background.png) no-repeat;
+        background-size: cover;
+        border: 0;
+        cursor: pointer;
+        right: 20px;
+        bottom: 20px;
+        z-index: 9999999;
+        width: 84px;
+        height: 47px;
+      }
+      #vrButton p {
+        bottom: 45px;
+        color: #FFF;
+        font-size: 12px;
+        font-family: monospace;
+        font-weight: bold;
+        text-align: center;
+        text-transform: uppercase;
+        position: relative;
+      }
+      .a-loader-title {
+        color: #fff;
+        background: none;
+        font-family: monospace;
+        font-size: 24px;
+      }
+    </style>
     <script src="https://cdn.jsdelivr.net/gh/aframevr/aframe@2c4509aa1a9a3c447c08be9facfea0c7d6a9e156/dist/aframe-master.min.js"></script>
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="build/build.js?v=3"></script>
+    <script>
+      // Fallback if socket.io is not available
+      window.io = window.io || function() { 
+        return { 
+          on: function(){}, 
+          emit: function(){}, 
+          connect: function(){ return this; } 
+        }; 
+      };
+    </script>
+    <script src="/socket.io/socket.io.js" onerror="console.log('Socket.IO not available, multiplayer disabled')"></script>
+    <script src="build/build.js?v=4"></script>
   </head>
   <body>
     <div id="app"></div>

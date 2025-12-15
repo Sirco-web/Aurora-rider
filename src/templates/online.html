@@ -4,12 +4,20 @@
 <a-entity
   id="onlineMenu"
   bind__visible="onlineMenuActive"
-  position="0 1.5 -2">
+  position="0 1.5 -1.5">
+
+  <!-- Click blocker - invisible plane to block clicks behind menu -->
+  <a-entity
+    id="onlineMenuBlocker"
+    bind-toggle__raycastable="onlineMenuActive"
+    geometry="primitive: plane; width: 10; height: 10"
+    material="shader: flat; color: #000; opacity: 0; transparent: true; side: double"
+    position="0 0 -0.1"></a-entity>
 
   <!-- Background -->
   <a-entity
-    geometry="primitive: plane; width: 2.2; height: 1.5"
-    material="shader: flat; color: #111; opacity: 0.95"
+    geometry="primitive: plane; width: 2.4; height: 1.8"
+    material="shader: flat; color: #000; opacity: 1"
     position="0 0 -0.01"></a-entity>
 
   <!-- Title -->
@@ -44,10 +52,10 @@
 
   <!-- Username Entry (Create flow) -->
   <a-entity bind__visible="onlineCreatePanelActive">
-    <a-entity mixin="font" text="align: center; color: #FFF; wrapCount: 30; value: ENTER YOUR NAME; width: 1.5" position="0 0.3 0.01"></a-entity>
     <a-entity
       id="createUsernameKeyboard"
-      super-keyboard="imagePath: assets/img/keyboard; font: assets/fonts/Viga-Regular.json; align: center; model: basic; keyColor: #333; keyBgColor: #fff; filters: allupper; maxLength: 10; width: 1.2"
+      bind__super-keyboard="hand: activeHand === 'left' && '#leftHand' || '#rightHand'; show: onlineCreatePanelActive"
+      super-keyboard="imagePath: assets/img/keyboard; font: assets/fonts/Viga-Regular.json; align: center; model: superkeyboard; keyColor: #fff; keyBgColor: #333; inputColor: #fff; labelColor: #FF6BE6; filters: allupper; maxLength: 10; width: 1.2; label: ENTER YOUR NAME"
       position="0 -0.1 0.02"></a-entity>
     <a-entity
       mixin="bigMenuButton"
@@ -61,10 +69,10 @@
 
   <!-- Username Entry (Join flow) -->
   <a-entity bind__visible="onlineJoinPanelActive">
-    <a-entity mixin="font" text="align: center; color: #FFF; wrapCount: 30; value: ENTER YOUR NAME; width: 1.5" position="0 0.3 0.01"></a-entity>
     <a-entity
       id="joinUsernameKeyboard"
-      super-keyboard="imagePath: assets/img/keyboard; font: assets/fonts/Viga-Regular.json; align: center; model: basic; keyColor: #333; keyBgColor: #fff; filters: allupper; maxLength: 10; width: 1.2"
+      bind__super-keyboard="hand: activeHand === 'left' && '#leftHand' || '#rightHand'; show: onlineJoinPanelActive"
+      super-keyboard="imagePath: assets/img/keyboard; font: assets/fonts/Viga-Regular.json; align: center; model: superkeyboard; keyColor: #fff; keyBgColor: #333; inputColor: #fff; labelColor: #FF6BE6; filters: allupper; maxLength: 10; width: 1.2; label: ENTER YOUR NAME"
       position="0 -0.1 0.02"></a-entity>
     <a-entity
       mixin="bigMenuButton"
@@ -78,10 +86,10 @@
 
   <!-- Join Code Entry -->
   <a-entity bind__visible="onlineJoinCodePanelActive">
-    <a-entity mixin="font" text="align: center; color: #FFF; wrapCount: 30; value: ENTER ROOM CODE; width: 1.5" position="0 0.3 0.01"></a-entity>
     <a-entity
       id="joinCodeKeyboard"
-      super-keyboard="imagePath: assets/img/keyboard; font: assets/fonts/Viga-Regular.json; align: center; model: basic; keyColor: #333; keyBgColor: #fff; filters: allupper; maxLength: 6; width: 1.2"
+      bind__super-keyboard="hand: activeHand === 'left' && '#leftHand' || '#rightHand'; show: onlineJoinCodePanelActive"
+      super-keyboard="imagePath: assets/img/keyboard; font: assets/fonts/Viga-Regular.json; align: center; model: superkeyboard; keyColor: #fff; keyBgColor: #333; inputColor: #fff; labelColor: #FF6BE6; filters: allupper; maxLength: 6; width: 1.2; label: ENTER ROOM CODE"
       position="0 -0.1 0.02"></a-entity>
     <a-entity
       mixin="bigMenuButton"

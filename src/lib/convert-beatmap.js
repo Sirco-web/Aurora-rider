@@ -5,11 +5,14 @@ module.exports = function convertBeatmap (src) {
 
   src['version'] = src['versions'][0]['hash'];
 
-  const coverImageCorsProxy = 'https://beatproxy.b-cdn.net/';
+  // CORS proxy only for cover images
+  const coverImageCorsProxy = 'https://corsproxy.io/?url=';
+  const originalCoverURL = src['versions'][0]['coverURL'];
 
   src['directDownload'] = src['versions'][0]['downloadURL'];
 
-  src['coverURL'] = coverImageCorsProxy + src['versions'][0]['coverURL'].split('/')[3];
+  // Use CORS proxy for cover image only
+  src['coverURL'] = coverImageCorsProxy + encodeURIComponent(originalCoverURL);
 
   let diffs = src['versions'][0]['diffs'];
 
