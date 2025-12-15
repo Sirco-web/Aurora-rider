@@ -9,7 +9,7 @@ AFRAME.registerComponent('gpu-preloader', {
 
   play: function () {
     setTimeout(() => {
-      this.preloadFromSelector('#mainLogo');
+      // mainLogo removed - now uses text instead of image
       this.preloadFromSelector('#prevArrow');
       this.preloadFromSelector('#stepback');
       this.preloadFromSelector('.difficultyBackground');
@@ -27,7 +27,10 @@ AFRAME.registerComponent('gpu-preloader', {
   // Standard material.map texture got from a dom selector
   preloadFromSelector: function (selector) {
     const el = document.querySelector(selector);
-    this.preloadTexture(el.getObject3D('mesh').material.map);
+    if (!el) { return; }
+    const mesh = el.getObject3D('mesh');
+    if (!mesh || !mesh.material || !mesh.material.map) { return; }
+    this.preloadTexture(mesh.material.map);
   },
 
   // List of textures gathered in `materials` system

@@ -198,7 +198,7 @@
 
 <!-- Search. -->
 <a-entity id="keyboard"
-  bind__super-keyboard="hand: activeHand === 'left' && '#leftHand' || '#rightHand'; show: isSearching"
+  bind__super-keyboard="hand: inVR && (activeHand === 'left' && '#leftHand' || '#rightHand') || '#mouseCursor'; show: isSearching"
   super-keyboard="label: Search on beatsaver.com; inputColor: #fff; labelColor: {{ COLORS.WHITE }}; width: 1.5; hand: #mouseCursor; imagePath: assets/img/keyboard; font: assets/fonts/Viga-Regular.json; align: center; model: superkeyboard; keyColor: #fff; injectToRaycasterObjects: false; filters: allupper; keyHoverColor: #fff"
   position="0.58 1.2 -1.95" keyboard-raycastable="condition: isSearching" search
   proxy-event__dismiss="event: superkeyboarddismiss; to: a-scene; as: keyboardclose"
