@@ -93,7 +93,7 @@
       position="0 -0.1 0"></a-entity>
     <a-entity
       mixin="bigMenuButton"
-      bind-toggle__raycastable="onlineInLobby && menuActive"
+      bind-toggle__raycastable="onlineInLobby && menuActive && !menuSelectedChallenge.id"
       geometry="height: 0.12; width: 0.5"
       position="0 -0.22 0.01"
       proxy-event="event: click; to: a-scene; as: onlineleaveroom"

@@ -351,6 +351,15 @@ class MultiplayerClient {
   }
 
   /**
+   * Force show results (host only) - skips waiting for slow players
+   */
+  forceResults() {
+    if (this.socket && this.connected && this.roomCode && this.isHost) {
+      this.socket.emit('forceResults');
+    }
+  }
+
+  /**
    * Send chat message
    * @param {string} message 
    */

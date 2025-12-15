@@ -129,6 +129,14 @@ AFRAME.registerComponent('online-mode', {
       scene.emit('onlinereturnedtolobby', { players: data.room.players });
     });
     
+    multiplayerClient.on('youWereKicked', function (data) {
+      console.log('[Online] You were kicked:', data.reason);
+      self.inOnlineGame = false;
+      scene.emit('onlineerror', 'Game ended by host');
+      // Show results immediately for kicked player
+      scene.emit('onlinegameresults', { leaderboard: [] });
+    });
+    
     multiplayerClient.on('error', function (data) {
       console.error('[Online] Error:', data.message);
       scene.emit('onlineerror', data.message);
@@ -272,6 +280,15 @@ AFRAME.registerComponent('online-mode', {
     // Return to lobby (host only)
     scene.addEventListener('onlinereturnlobby', function () {
       multiplayerClient.returnToLobby();
+    });
+    
+    // Force show results (host only) - skips waiting for slow players
+    scene.addEventListener('onlineforceresults', function () {
+      var state = scene.systems.state.state;
+      if (state.onlineIsHost) {
+        console.log('[Online] Host forcing results');
+        multiplayerClient.forceResults();
+      }
     });
     
     // Kick player (host only)

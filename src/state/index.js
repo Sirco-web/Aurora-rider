@@ -217,8 +217,10 @@ AFRAME.registerState({
     onlineInResults: false,
     onlineWaitingForPlayers: false,  // Waiting for other players to finish
     onlineWaitingText: '',  // Text showing who we're waiting for
+    onlineWaitingPlayersText: '',  // List of players still playing with kick buttons
     onlinePlayersFinished: 0,  // Count of players who finished
     onlinePlayersTotalInGame: 0,  // Total players in game
+    onlinePlayersWaiting: [],  // List of players still playing (for kick functionality)
     onlineShowMainPanel: true
   },
 
@@ -700,6 +702,7 @@ AFRAME.registerState({
 
     onlinegamestarting: (state, payload) => {
       console.log('[State] onlinegamestarting:', payload);
+      console.log('[State] Challenge from server:', JSON.stringify(payload.challenge));
       state.onlineCountdown = payload.countdown;
       state.onlineRoomState = 'countdown';
       state.onlineInCountdown = true;
@@ -709,8 +712,16 @@ AFRAME.registerState({
       state.gameMode = payload.gameMode;
       // Store challenge for ALL players (host and non-host)
       if (payload.challenge) {
-        console.log('[State] Setting challenge:', payload.challenge.id);
-        Object.assign(state.menuSelectedChallenge, payload.challenge);
+        console.log('[State] Setting challenge:', payload.challenge.id, 'version:', payload.challenge.version);
+        // Deep copy the challenge including nested metadata
+        Object.keys(payload.challenge).forEach(key => {
+          if (key === 'metadata' && typeof payload.challenge[key] === 'object') {
+            state.menuSelectedChallenge.metadata = Object.assign({}, payload.challenge.metadata);
+          } else {
+            state.menuSelectedChallenge[key] = payload.challenge[key];
+          }
+        });
+        console.log('[State] menuSelectedChallenge after assign:', state.menuSelectedChallenge.id, 'version:', state.menuSelectedChallenge.version);
       }
     },
 
@@ -719,7 +730,10 @@ AFRAME.registerState({
     },
 
     onlinegamestarted: state => {
-      console.log('[State] onlinegamestarted, menuSelectedChallenge:', state.menuSelectedChallenge);
+      console.log('[State] onlinegamestarted');
+      console.log('[State] menuSelectedChallenge.id:', state.menuSelectedChallenge.id);
+      console.log('[State] menuSelectedChallenge.version:', state.menuSelectedChallenge.version);
+      
       state.onlineCountdown = 0;
       state.onlineRoomState = 'playing';
       state.onlineInCountdown = false;
@@ -729,14 +743,26 @@ AFRAME.registerState({
       
       // Actually start the game - copy challenge from menuSelectedChallenge (set by onlinegamestarting)
       if (state.menuSelectedChallenge && state.menuSelectedChallenge.id) {
-        console.log('[State] Starting game with challenge:', state.menuSelectedChallenge.id);
+        console.log('[State] Starting game with challenge:', state.menuSelectedChallenge.id, 'version:', state.menuSelectedChallenge.version);
         resetScore(state);
-        Object.assign(state.challenge, state.menuSelectedChallenge);
+        
+        // Copy challenge including nested metadata
+        Object.keys(state.menuSelectedChallenge).forEach(key => {
+          if (key === 'metadata' && typeof state.menuSelectedChallenge[key] === 'object') {
+            state.challenge.metadata = Object.assign({}, state.menuSelectedChallenge.metadata);
+          } else {
+            state.challenge[key] = state.menuSelectedChallenge[key];
+          }
+        });
+        
         state.isLoading = true;
         state.loadingText = 'Loading...';
-        state.menuSelectedChallenge.id = '';
+        console.log('[State] isLoading set to true, challenge.id:', state.challenge.id, 'challenge.version:', state.challenge.version);
+        
+        // Don't clear menuSelectedChallenge.id yet - zip-loader needs it
+        // It will be cleared after zip loads
       } else {
-        console.error('[State] No challenge to start game with!');
+        console.error('[State] No challenge to start game with! menuSelectedChallenge:', JSON.stringify(state.menuSelectedChallenge));
       }
     },
 
@@ -751,14 +777,31 @@ AFRAME.registerState({
       state.isVictory = false;  // Hide normal victory screen
       state.onlinePlayersFinished = payload.playersFinished || 1;
       state.onlinePlayersTotalInGame = payload.totalPlayers || state.onlinePlayers.length;
+      state.onlinePlayersWaiting = payload.playersStillPlaying || [];
       state.onlineWaitingText = 'Waiting for other players... (' + state.onlinePlayersFinished + '/' + state.onlinePlayersTotalInGame + ')';
+      
+      // Format waiting players list
+      if (state.onlinePlayersWaiting.length > 0) {
+        state.onlineWaitingPlayersText = 'Still playing: ' + state.onlinePlayersWaiting.map(function(p) { return p.name; }).join(', ');
+      } else {
+        state.onlineWaitingPlayersText = '';
+      }
     },
 
     // When another player finishes - update waiting count (also for self from server confirmation)
     onlineotherplayerfinished: (state, payload) => {
       state.onlinePlayersFinished = payload.playersFinished || state.onlinePlayersFinished + 1;
       state.onlinePlayersTotalInGame = payload.totalPlayers || state.onlinePlayersTotalInGame;
+      state.onlinePlayersWaiting = payload.playersStillPlaying || [];
       state.onlineWaitingText = 'Waiting for other players... (' + state.onlinePlayersFinished + '/' + state.onlinePlayersTotalInGame + ')';
+      
+      // Format waiting players list
+      if (state.onlinePlayersWaiting.length > 0) {
+        state.onlineWaitingPlayersText = 'Still playing: ' + state.onlinePlayersWaiting.map(function(p) { return p.name; }).join(', ');
+      } else {
+        state.onlineWaitingPlayersText = '';
+      }
+      
       // Also ensure waiting screen is visible
       if (state.onlineWaitingForPlayers) {
         state.onlineRoomState = 'waiting';
@@ -793,6 +836,13 @@ AFRAME.registerState({
         state.onlineLeaderboardText = 'No scores recorded';
       }
       console.log('[State] Leaderboard text:', state.onlineLeaderboardText);
+    },
+
+    // Host forces results to show (skips waiting for slow players)
+    onlineforceresults: (state) => {
+      console.log('[State] Force showing results');
+      // This just triggers the client to emit forceResults to server
+      // The actual result display will come from onlinegameresults when server responds
     },
 
     onlineerror: (state, payload) => {
@@ -1260,7 +1310,10 @@ AFRAME.registerState({
     ziploaderend: (state, payload) => {
       state.challenge.audio = payload.audio;
       state.hasSongLoadError = false;
-      state.menuSelectedChallenge.version = '';
+      // Don't clear version in online mode - it's needed for game flow
+      if (!state.onlineInLobby) {
+        state.menuSelectedChallenge.version = '';
+      }
       state.isZipFetching = false;
     },
 

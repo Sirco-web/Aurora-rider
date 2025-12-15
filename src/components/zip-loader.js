@@ -23,9 +23,12 @@ AFRAME.registerComponent('zip-loader', {
   update: function (oldData) {
     const data = this.data;
 
+    console.log('[ZipLoader] update called. oldVersion:', oldData.version, 'newVersion:', data.version, 'cachedVersion:', this.cachedVersion, 'isLoading:', data.isLoading);
+
     // Abort previous ZIP request if new song selected.
     if (oldData.version && oldData.version !== data.version &&
       this.cachedVersion !== data.version) {
+      console.log('[ZipLoader] Aborting previous request');
       this.message.abort = true;
       this.message.difficulties = JSON.stringify(this.data.difficulties);
       this.message.version = oldData.version;
@@ -36,6 +39,7 @@ AFRAME.registerComponent('zip-loader', {
     }
 
     if (data.version && oldData.version !== data.version) {
+      console.log('[ZipLoader] Version changed, fetching zip for:', data.version);
       this.cachedVersion = null;
       this.cachedZip = null;
       this.fetchZip(data.version);
@@ -45,6 +49,7 @@ AFRAME.registerComponent('zip-loader', {
     if (!oldData.isLoading && this.data.isLoading &&
       this.cachedVersion === this.data.version &&
       !this.cachedZip) {
+      console.error('[ZipLoader] Faulty ZIP detected! cachedVersion:', this.cachedVersion, 'dataVersion:', this.data.version);
       this.el.emit('songloaderror');
     }
   },

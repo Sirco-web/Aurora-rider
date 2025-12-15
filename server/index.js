@@ -493,12 +493,15 @@ io.on('connection', (socket) => {
       roomPlayer.finished = true;
     }
     
-    // Count finished players
+    // Count finished players and collect players still playing
     let finishedCount = 0;
     let totalPlayers = room.players.size;
-    for (const [, p] of room.players) {
+    let playersStillPlaying = [];
+    for (const [playerId, p] of room.players) {
       if (p.finished) {
         finishedCount++;
+      } else {
+        playersStillPlaying.push({ id: playerId, name: p.name });
       }
     }
     
@@ -510,7 +513,8 @@ io.on('connection', (socket) => {
       playerName: player.name,
       score: data.finalScore,
       playersFinished: finishedCount,
-      totalPlayers: totalPlayers
+      totalPlayers: totalPlayers,
+      playersStillPlaying: playersStillPlaying
     });
     
     // Check if all players finished
@@ -525,6 +529,85 @@ io.on('connection', (socket) => {
           room: room.toJSON()
         });
       }, 1500);
+    }
+  });
+
+  /**
+   * Host forces results to show (for slow/afk players)
+   */
+  socket.on('forceResults', () => {
+    const player = players.get(socket.id);
+    if (!player || !player.roomCode) return;
+    
+    const room = rooms.get(player.roomCode);
+    if (!room || room.hostId !== socket.id) return;  // Only host can force
+    
+    console.log(`[GAME] Host ${player.name} forced results in room ${player.roomCode}`);
+    room.state = 'results';
+    
+    io.to(player.roomCode).emit('gameResults', {
+      leaderboard: room.getLeaderboard(),
+      room: room.toJSON()
+    });
+  });
+
+  /**
+   * Host kicks a player from the game (marks them as finished with 0 score)
+   * @param {Object} data - { playerId: string }
+   */
+  socket.on('kickPlayer', (data) => {
+    const player = players.get(socket.id);
+    if (!player || !player.roomCode) return;
+    
+    const room = rooms.get(player.roomCode);
+    if (!room || room.hostId !== socket.id) return;  // Only host can kick
+    
+    const kickedPlayer = room.players.get(data.playerId);
+    if (!kickedPlayer) return;
+    
+    console.log(`[GAME] Host ${player.name} kicked ${kickedPlayer.name} from room ${player.roomCode}`);
+    
+    // Mark kicked player as finished with their current score (or 0)
+    kickedPlayer.finished = true;
+    
+    // Notify kicked player
+    io.to(data.playerId).emit('youWereKicked', {
+      reason: 'The host ended the game'
+    });
+    
+    // Recount and broadcast update
+    let finishedCount = 0;
+    let totalPlayers = room.players.size;
+    let playersStillPlaying = [];
+    for (const [playerId, p] of room.players) {
+      if (p.finished) {
+        finishedCount++;
+      } else {
+        playersStillPlaying.push({ id: playerId, name: p.name });
+      }
+    }
+    
+    io.to(player.roomCode).emit('playerFinished', {
+      playerId: data.playerId,
+      playerName: kickedPlayer.name,
+      score: kickedPlayer.score || 0,
+      playersFinished: finishedCount,
+      totalPlayers: totalPlayers,
+      playersStillPlaying: playersStillPlaying,
+      wasKicked: true
+    });
+    
+    // Check if all players now finished
+    if (finishedCount >= totalPlayers) {
+      console.log(`[GAME] All players finished in room ${player.roomCode}. Sending results...`);
+      room.state = 'results';
+      
+      setTimeout(() => {
+        io.to(player.roomCode).emit('gameResults', {
+          leaderboard: room.getLeaderboard(),
+          room: room.toJSON()
+        });
+      }, 500);
     }
   });
 
