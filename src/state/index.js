@@ -43,16 +43,27 @@ const DEBUG_CHALLENGE = {
 
 const SKIP_INTRO = AFRAME.utils.getUrlParameter('skipintro') === 'true';
 
-const colorScheme = localStorage.getItem('colorScheme') || 'default';
-
-let favorites = localStorage.getItem('favorites-v2');
-if (favorites) {
+// Safe localStorage access for server-side builds
+function safeGetItem(key, defaultValue) {
   try {
-    favorites = JSON.parse(favorites);
+    if (typeof localStorage !== 'undefined' && localStorage.getItem) {
+      return localStorage.getItem(key) || defaultValue;
+    }
   } catch (e) {
-    favorites = [];
+    // localStorage not available
   }
-} else {
+  return defaultValue;
+}
+
+const colorScheme = safeGetItem('colorScheme', 'default');
+
+let favorites = [];
+try {
+  const storedFavorites = safeGetItem('favorites-v2', null);
+  if (storedFavorites) {
+    favorites = JSON.parse(storedFavorites);
+  }
+} catch (e) {
   favorites = [];
 }
 
@@ -70,7 +81,7 @@ AFRAME.registerState({
   nonBindedStateKeys: ['genres'],
 
   initialState: {
-    activeHand: localStorage.getItem('hand') || 'right',
+    activeHand: safeGetItem('hand', 'right'),
     challenge: {  // Actively playing challenge.
       audio: '',  // URL.
       author: '',

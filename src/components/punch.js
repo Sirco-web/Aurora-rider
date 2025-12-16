@@ -42,10 +42,10 @@ AFRAME.registerComponent('punch', {
 
   checkCollision: (function () {
     const box = new THREE.Box3();
-    const expand = new THREE.Vector3(0, 0, 0.2);
+    const expand = new THREE.Vector3(0, 0, 0.35); // Increased Z from 0.2 to 0.35
 
     return function (beat) {
-      box.copy(beat.bbox).translate(beat.el.object3D.position).expandByScalar(0.1).expandByVector(expand);
+      box.copy(beat.bbox).translate(beat.el.object3D.position).expandByScalar(0.15).expandByVector(expand); // Increased from 0.1 to 0.15
       return this.bbox.intersectsBox(box);
     };
   })()

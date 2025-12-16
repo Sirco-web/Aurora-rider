@@ -3,7 +3,7 @@
  */
 AFRAME.registerComponent('curve-follow-rig-reset', {
   schema: {
-    isVictory: {type: 'string'}
+    isVictory: {default: false}
   },
 
   init: function () {

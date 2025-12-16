@@ -54,7 +54,7 @@ class Room {
     this.code = generateRoomCode();
     this.hostId = hostId;
     this.hostName = hostName;
-    this.gameMode = gameMode; // 'classic' or 'punch'
+    this.gameMode = gameMode; // 'classic', 'punch', or 'touch'
     this.players = new Map();
     this.state = 'lobby'; // 'lobby', 'selecting', 'countdown', 'playing', 'results'
     this.selectedChallenge = null;
@@ -216,7 +216,7 @@ io.on('connection', (socket) => {
 
   /**
    * Create a new room
-   * @param {Object} data - { playerName: string, gameMode: 'classic' | 'punch' }
+   * @param {Object} data - { playerName: string, gameMode: 'classic' | 'punch' | 'touch' }
    */
   socket.on('createRoom', (data) => {
     const { playerName, gameMode } = data;
@@ -226,8 +226,8 @@ io.on('connection', (socket) => {
       return;
     }
     
-    if (!['classic', 'punch'].includes(gameMode)) {
-      socket.emit('error', { message: 'Invalid game mode. Choose "classic" or "punch"' });
+    if (!['classic', 'punch', 'touch'].includes(gameMode)) {
+      socket.emit('error', { message: 'Invalid game mode. Choose "classic", "punch", or "touch"' });
       return;
     }
     

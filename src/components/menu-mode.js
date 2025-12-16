@@ -6,7 +6,6 @@ const iconPositions = {
   ride2d: 0.87,
   ridevr: 0.15,
   viewer2d: 0.15,
-  online2d: -0.6,
   onlinevr: -1.35
 };
 
@@ -16,7 +15,6 @@ const modeMap = {
   ride2d: 'ride',
   ridevr: 'ride',
   viewer2d: 'viewer',
-  online2d: 'online',
   onlinevr: 'online'
 };
 
@@ -28,21 +26,31 @@ AFRAME.registerComponent('menu-mode', {
 
   init: function () {
     this.el.addEventListener('click', evt => {
-      var item = evt.target.closest('[data-mode]');
-      var mode = item.dataset.mode;
-      var name = item.dataset.name;
-      
-      // Handle online mode specially - open online menu
-      if (mode === 'online') {
-        this.el.sceneEl.emit('onlinemenutoggle', null, false);
-        return;
+      try {
+        var item = evt.target.closest('[data-mode]');
+        if (!item) { return; }  // No mode item clicked
+        
+        var mode = item.dataset.mode;
+        var name = item.dataset.name;
+        
+        if (!mode) { return; }  // No mode specified
+        
+        // Handle online mode specially - open online menu (VR only)
+        if (mode === 'online') {
+          this.el.sceneEl.emit('onlinemenutoggle', null, false);
+          return;
+        }
+        
+        this.el.sceneEl.emit('gamemode', mode, false);
+        if (this.data.hasVR && name) {
+          localStorage.setItem('gameMode', name);
+        }
+        if (name) {
+          this.setModeOption(name);
+        }
+      } catch (e) {
+        console.error('[menu-mode] Error handling click:', e);
       }
-      
-      this.el.sceneEl.emit('gamemode', mode, false);
-      if (this.data.hasVR) {
-        localStorage.setItem('gameMode', name);
-      }
-      this.setModeOption(name);
     });
   },
 
@@ -57,7 +65,12 @@ AFRAME.registerComponent('menu-mode', {
 
   setModeOption: function (name) {
     const modeEls = this.el.querySelectorAll('.modeItem');
-    document.getElementById('modeIcon').object3D.position.y = iconPositions[name];
+    const modeIcon = document.getElementById('modeIcon');
+    
+    // Only update icon position if the icon exists and position is defined
+    if (modeIcon && modeIcon.object3D && iconPositions[name] !== undefined) {
+      modeIcon.object3D.position.y = iconPositions[name];
+    }
 
     for (let i = 0; i < modeEls.length; i++) {
       const modeEl = modeEls[i];
@@ -66,23 +79,31 @@ AFRAME.registerComponent('menu-mode', {
       modeEl.emit(selected ? 'select' : 'deselect', null, false);
 
       const background = modeEl.querySelector('.modeBackground');
-      background.emit(selected ? 'select' : 'deselect', null, false);
-      background.setAttribute(
-        'mixin',
-        'modeBackgroundSelect' + (selected ? '' : ' modeBackgroundHover'));
+      if (background) {
+        background.emit(selected ? 'select' : 'deselect', null, false);
+        background.setAttribute(
+          'mixin',
+          'modeBackgroundSelect' + (selected ? '' : ' modeBackgroundHover'));
+      }
 
       const thumb = modeEl.querySelector('.modeThumb');
-      thumb.emit(selected ? 'select' : 'deselect', null, false);
+      if (thumb) {
+        thumb.emit(selected ? 'select' : 'deselect', null, false);
+      }
 
       const title = modeEl.querySelector('.modeTitle');
-      title.setAttribute(
-        'text', 'color',
-        selected ? COLORS.WHITE : COLORS.schemes[this.data.colorScheme].secondary);
+      if (title) {
+        title.setAttribute(
+          'text', 'color',
+          selected ? COLORS.WHITE : COLORS.schemes[this.data.colorScheme].secondary);
+      }
 
       const instructions = modeEl.querySelector('.modeInstructions');
-      instructions.setAttribute(
-        'text', 'color',
-        selected ? COLORS.WHITE : COLORS.schemes[this.data.colorScheme].primary);
+      if (instructions) {
+        instructions.setAttribute(
+          'text', 'color',
+          selected ? COLORS.WHITE : COLORS.schemes[this.data.colorScheme].primary);
+      }
     }
   }
 });

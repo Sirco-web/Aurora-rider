@@ -51,7 +51,7 @@ AFRAME.registerComponent('weapon-particles', {
 
     // Hide hit intersection texture.
     if (this.intersectedEl.components.wall || this.intersectedEl.id === 'floor') {
-      const uniform = this.data.hand === RIGHT ? HIT_RIGHT : HIT_LEFT;
+      const uniform = this.data.hand === 'right' ? HIT_RIGHT : HIT_LEFT;
       const material = this.intersectedEl.getObject3D('mesh').material;
       material.uniforms[uniform].value = this.hiddenIntersection;
     }

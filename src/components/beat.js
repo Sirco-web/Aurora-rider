@@ -63,8 +63,14 @@ const ROTATIONS = {
 const SIZES = {
   [CLASSIC]: 0.48,
   [PUNCH]: 0.35,
-  [RIDE]: 0.4
+  [RIDE]: 0.4,
+  viewer: 0.48  // Viewer mode - same as classic
 };
+
+// Helper to get size with fallback
+function getSize(gameMode) {
+  return SIZES[gameMode] || SIZES[CLASSIC];
+}
 
 AFRAME.registerComponent('beat-system', {
   schema: {
@@ -86,7 +92,7 @@ AFRAME.registerComponent('beat-system', {
     this.curveFollowRig = document.getElementById('curveFollowRig');
     this.punchEls = this.el.sceneEl.querySelectorAll('a-entity[punch]');
     this.curveEl = document.getElementById('curve');
-    this.size = SIZES[this.data.gameMode];
+    this.size = getSize(this.data.gameMode);
     this.supercurveFollow = null;
   },
 
@@ -101,7 +107,7 @@ AFRAME.registerComponent('beat-system', {
   },
 
   update: function (oldData) {
-    this.size = SIZES[this.data.gameMode];
+    this.size = getSize(this.data.gameMode);
 
     if (oldData.isLoading && !this.data.isLoading) {
       this.updateBeatPositioning();
@@ -123,6 +129,11 @@ AFRAME.registerComponent('beat-system', {
 
     // Filter for beats that should be checked for collisions.
     beatsToCheck.length = 0;
+    
+    // Early hit buffer - allows hitting beats slightly before their expected time
+    // This accounts for players stepping forward in VR
+    const earlyHitBuffer = 0.015; // ~1.5% of curve length early
+    
     for (let i = 0; i < this.beats.length; i++) {
       const beat = this.beats[i];
 
@@ -130,7 +141,8 @@ AFRAME.registerComponent('beat-system', {
       if (beat.destroyed) { continue; }
 
       // Check if beat is close enough to be hit.
-      const beatProgress = beat.songPosition - this.weaponOffset;
+      // Add earlyHitBuffer to allow hitting beats slightly before expected time
+      const beatProgress = beat.songPosition - this.weaponOffset - earlyHitBuffer;
       if (progress < beatProgress) { continue; }
 
       // Check if beat should be filtered out due to not being in front.
@@ -230,7 +242,7 @@ AFRAME.registerComponent('beat-system', {
       const verticalPositions = this.verticalPositions;
 
       const heightOffset = this.el.sceneEl.camera.el.object3D.position.y - REFERENCE_HEIGHT;
-      const size = SIZES[gameMode];
+      const size = getSize(gameMode);
 
       // Horizontal margin based on size of blocks so they don't overlap, which a smidge
       // of extra margin.
@@ -370,7 +382,7 @@ AFRAME.registerComponent('beat', {
 
     // Model is 0.29 size. We make it 1.0 so we can easily scale based on 1m size.
     const FACTOR = 1 / 0.29;
-    const size = SIZES[this.beatSystem.data.gameMode] * FACTOR;
+    const size = getSize(this.beatSystem.data.gameMode) * FACTOR;
     this.blockEl.object3D.scale.set(size, size, size);
 
     cutDirection = cutDirection || 'down';

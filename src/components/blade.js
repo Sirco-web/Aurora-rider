@@ -104,9 +104,15 @@ AFRAME.registerComponent('blade', {
         bladeLocalPositions[1],
         bladeLocalPositions[2]);
 
-      // Increase hitbox for high beats.
+      // Increase hitbox for better hit detection
+      // Accounts for player stepping forward/back in VR
       bbox.copy(beat.bbox);
-      bbox.expandByScalar(0.02);
+      bbox.expandByScalar(0.05); // Increased from 0.02 for better hit reg
+      
+      // Expand Z axis more to account for player movement
+      bbox.min.z -= 0.15;
+      bbox.max.z += 0.15;
+      
       if (beat.horizontalPosition === LEFT || beat.horizontalPosition === RIGHT) {
         bbox.expandByScalar(0.07);
       }

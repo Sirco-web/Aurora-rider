@@ -1,7 +1,7 @@
 AFRAME.registerComponent('zip-loader', {
   schema: {
     difficulties: { type: 'array' },
-    isLoading: { default: 'false' },
+    isLoading: { default: false },
     version: { type: 'string' },
     directDownload: { type: 'string' },
     bpm: { type: 'number' }

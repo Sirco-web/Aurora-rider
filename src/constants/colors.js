@@ -81,7 +81,7 @@ COLORS.schemes = {
     name: 'Mint Choco',
     off: '#111',
     primary: '#34eb89',
-    primarYBRIGht: '#40fb95',
+    primarybright: '#40fb95',
     secondary: '#34ebd8',
     secondarybright: '#40fbeA',
     tertiary: '#eb3434'
@@ -91,7 +91,7 @@ COLORS.schemes = {
     name: 'Cheetah SoL',
     off: '#111',
     primary: '#c27727',
-    primarYBright: '#e68319',
+    primarybright: '#e68319',
     secondary: '#635c54',
     secondarybright: '#8a857f',
     tertiary: '#ebebeb'
@@ -110,10 +110,16 @@ COLORS.schemes = {
 
 COLORS.options = Object.keys(COLORS.schemes);
 
-if (typeof localStorage === 'undefined') {
-  COLORS.initial = 'default';
-} else {
-  COLORS.initial = COLORS.schemes[localStorage.getItem('colorScheme') || 'default'];
+// Handle server-side rendering where localStorage is not available
+let savedColorScheme = 'default';
+if (typeof window !== 'undefined' && typeof window.localStorage !== 'undefined') {
+  try {
+    savedColorScheme = window.localStorage.getItem('colorScheme') || 'default';
+  } catch (e) {
+    // localStorage access denied
+    savedColorScheme = 'default';
+  }
 }
+COLORS.initial = COLORS.schemes[savedColorScheme] || COLORS.schemes['default'];
 
 module.exports = COLORS;
