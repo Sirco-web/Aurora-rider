@@ -305,9 +305,18 @@ AFRAME.registerComponent('online-mode', {
       self.inOnlineGame = false;
     });
     
-    // Return to lobby (host only)
+    // Return to lobby (host only) - both events trigger return to lobby
     scene.addEventListener('onlinereturnlobby', function () {
       multiplayerClient.returnToLobby();
+    });
+    
+    // Play Again button on results screen - returns to lobby
+    scene.addEventListener('onlineplayagain', function () {
+      var state = scene.systems.state.state;
+      if (state.onlineIsHost) {
+        console.log('[Online] Host clicked Play Again - returning to lobby');
+        multiplayerClient.returnToLobby();
+      }
     });
     
     // Force show results (host only) - skips waiting for slow players

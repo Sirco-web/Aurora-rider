@@ -448,6 +448,12 @@ AFRAME.registerState({
       state.isLoading = true;
       state.isVictory = false;
       state.leaderboardQualified = false;
+      // Reset online states to prevent stuck state
+      state.onlineInResults = false;
+      state.onlineWaitingForPlayers = false;
+      state.onlineInPlaying = false;
+      state.onlineMenuActive = false;
+      state.onlineRoomState = '';
     },
 
     gamemenuexit: state => {
@@ -1399,7 +1405,8 @@ AFRAME.registerState({
       !!state.challenge.id && !state.introActive;
 
     const anyMenuOpen = state.menuActive || state.isPaused || state.isVictory ||
-      state.isGameOver || state.isLoading || state.introActive;
+      state.isGameOver || state.isLoading || state.introActive ||
+      state.onlineMenuActive || state.onlineInResults || state.onlineWaitingForPlayers;
     state.leftRaycasterActive = anyMenuOpen && state.activeHand === 'left' && state.inVR;
     state.rightRaycasterActive = anyMenuOpen && state.activeHand === 'right' && state.inVR;
 

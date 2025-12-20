@@ -286,7 +286,33 @@ Aurora Rider is a fork of [Moon Rider](https://github.com/supermedium/moonrider)
 
 ---
 
-## 🙏 Credits
+## � Bug Fixes (v2.10)
+
+### Online Multiplayer Fixes
+
+- **Fixed: Search keyboard kicking from lobby** - When the host was in the online lobby and opened the song selector, typing on the search keyboard would accidentally trigger the Leave button. Added `!isSearching` condition to the Leave button's raycastability.
+
+- **Fixed: Play Again/Leave buttons not working in VR** - After completing an online game, the buttons on the results screen didn't respond to VR controller clicks. The VR raycasters weren't being activated for online screens. Added `onlineMenuActive`, `onlineInResults`, and `onlineWaitingForPlayers` to the raycaster activation conditions.
+
+- **Fixed: Try Again causing stuck on road** - Clicking "Play Again" after an online game would leave the player stuck on the road with no menu. The `gamemenurestart` handler now properly resets all online-related states.
+
+- **Fixed: Play Again button not calling server** - The "Play Again" button on the results screen now properly calls `returnToLobby()` on the server to synchronize all players.
+
+- **Fixed: Button overlap on results screen** - The "Play Again" and "Leave" buttons on the online results screen were overlapping. Reduced button width from 1.15 to 0.85 and increased spacing from 0.7 to 1.0 units apart.
+
+### Technical Details
+
+| Issue | File | Fix |
+|-------|------|-----|
+| Leave button raycastable during search | `src/templates/menu.html` | Added `&& !isSearching` to raycastability condition |
+| VR raycaster not active on results | `src/state/index.js` | Added online states to `anyMenuOpen` computation |
+| Game restart not resetting online state | `src/state/index.js` | Added online state resets to `gamemenurestart` |
+| Play Again not syncing with server | `src/components/online-mode.js` | Added `onlineplayagain` event listener |
+| Button overlap | `src/templates/online.html` | Adjusted button geometry and positions |
+
+---
+
+## �🙏 Credits
 
 - **Original Game**: [Moon Rider](https://github.com/supermedium/moonrider) by [Supermedium](https://supermedium.com)
 - **Lead Developer**: [@ngokevin](https://github.com/ngokevin)
