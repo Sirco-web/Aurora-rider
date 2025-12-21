@@ -594,13 +594,53 @@ AFRAME.registerState({
       state.menuActive = true;
     },
 
-    // onlineplayagain - host clicked play again
+    // onlineplayagain - host clicked play again (local state update only)
+    // The actual lobby transition happens via onlinereturnedtolobby when server confirms
     onlineplayagain: state => {
-      state.onlineRoomState = 'lobby';
-      state.onlineInResults = false;
-      state.onlineInLobby = true;
+      // Reset game state for replay
       state.onlineLeaderboard = [];
       state.onlineLeaderboardText = '';
+      state.isVictory = false;
+      state.isPlaying = false;
+    },
+
+    // Server confirmed return to lobby - ALL players receive this
+    onlinereturnedtolobby: (state, payload) => {
+      console.log('[State] onlinereturnedtolobby');
+      state.onlineRoomState = 'lobby';
+      state.onlineInResults = false;
+      state.onlineWaitingForPlayers = false;
+      state.onlineInPlaying = false;
+      state.onlineInCountdown = false;
+      state.onlineInLobby = true;
+      state.onlineShowMainPanel = false;
+      state.onlineCreatePanelActive = false;
+      state.onlineJoinPanelActive = false;
+      state.onlineJoinCodePanelActive = false;
+      state.onlineModeSelectPanelActive = false;
+      state.onlineMenuActive = true;
+      state.menuActive = false;
+      state.isVictory = false;
+      state.isPlaying = false;
+      state.isLoading = false;
+      state.isPaused = false;
+      
+      // Clear previous challenge
+      state.challenge.id = '';
+      state.challenge.audio = '';
+      state.menuSelectedChallenge.id = '';
+      state.menuSelectedChallenge.version = '';
+      
+      // Reset leaderboard
+      state.onlineLeaderboard = [];
+      state.onlineLeaderboardText = '';
+      
+      // Update players list if provided
+      if (payload && payload.players) {
+        state.onlinePlayers = payload.players;
+        updateOnlinePlayersText(state);
+      }
+      updateOnlineDisplayTexts(state);
     },
 
     onlineshowcreate: state => {
